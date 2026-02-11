@@ -236,6 +236,7 @@ usage: $0 <platform> [path]
 
 Supported platforms:
 
+	kindle5
 	kindlepw2
 	kindlehf
 
@@ -256,6 +257,9 @@ case $1 in
 	-h)
 		echo "${HELP_MSG}"
 		exit 0
+		;;
+	kindle5)
+		Setup_SDK "arm-kindle5-linux-gnueabi" "kindle5" "https://s3.amazonaws.com/G7G_FirmwareUpdates_WebDownloads/update_kindle_5.3.7.3.bin"
 		;;
 	kindlehf)
 		Setup_SDK "arm-kindlehf-linux-gnueabihf" "kindlehf" "https://s3.amazonaws.com/firmwaredownloads/update_kindle_all_new_paperwhite_v2_5.16.3.bin" "https://s3.amazonaws.com/firmwaredownloads/update_kindle_scribe_5.16.3.bin"
