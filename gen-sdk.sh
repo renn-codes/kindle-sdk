@@ -16,11 +16,6 @@ Setup_SDK() {
         tc_dir="$HOME/x-tools/$tc_target"
     fi
     sysroot_dir="$tc_dir/$tc_target/sysroot"
-
-    # Just in case
-    set +e
-    sudo umount ./cache/${tc_target}/firmware*/mnt
-    set -e
     
     case $sdk_target in
         kindlehf)
@@ -106,7 +101,9 @@ Setup_SDK() {
 
           gunzip rootfs.img.gz
           mkdir -p mnt
-          sudo mount -o loop rootfs.img mnt
+          # Extract ext filesystem without mounting
+          sudo debugfs -R "rdump / mnt/" rootfs.img 2>/dev/null || true
+          sudo chown -R $USER: mnt/
       cd ../../..
     done
 
@@ -207,9 +204,6 @@ Setup_SDK() {
 
     chmod -f a-w $tc_dir/
 
-
-    echo "[*] Cleaning up"
-    sudo umount ./cache/${tc_target}/firmware*/mnt
 
     echo "===================================================================================================="
     echo "[*] Kindle (unofficial) SDK Installed"
