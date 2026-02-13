@@ -187,8 +187,8 @@ Setup_SDK() {
     for i in "${!FIRM_URLS[@]}"; do
         echo "  - Copying firmware ${i}"
         set +e
-        cp -rn --remove-destination ./cache/${tc_target}/firmware_${i}/mnt/usr/lib/* $sysroot_dir/usr/lib/
-        cp -rn --remove-destination ./cache/${tc_target}/firmware_${i}/mnt/lib/* $sysroot_dir/lib/
+        sudo cp -rn --remove-destination ./cache/${tc_target}/firmware_${i}/mnt/usr/lib/* $sysroot_dir/usr/lib/
+        sudo cp -rn --remove-destination ./cache/${tc_target}/firmware_${i}/mnt/lib/* $sysroot_dir/lib/
         set -e
     done
     sudo chown -R $USER: ${sysroot_dir}/usr/lib/*
