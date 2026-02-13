@@ -16,7 +16,7 @@ Setup_SDK() {
         tc_dir="$HOME/x-tools/$tc_target"
     fi
     sysroot_dir="$tc_dir/$tc_target/sysroot"
-    
+
     case $sdk_target in
         kindlehf)
             arch="armhf"
@@ -31,14 +31,14 @@ Setup_SDK() {
         exit 1
     fi
 
-    chmod -f a-w $tc_dir
+    sudo chmod -f a-w $tc_dir
     echo "[*] Setting up SDK for $1"
 
     echo "[*] Generating Meson crosscompilation file"
-    chmod -f a+w $tc_dir
+    sudo chmod -f a+w $tc_dir
 
     if [ -f "$tc_dir/meson-crosscompile.txt" ]; then
-        chmod -f a+w $tc_dir/meson-crosscompile.txt
+        sudo chmod -f a+w $tc_dir/meson-crosscompile.txt
     fi
 
     echo "[binaries]" > $tc_dir/meson-crosscompile.txt
@@ -62,7 +62,7 @@ Setup_SDK() {
     echo "pkg_config_libdir = '$tc_dir/$tc_target/sysroot/usr/lib/pkgconfig'" >> $tc_dir/meson-crosscompile.txt
     echo "target='Kindle'" >> $tc_dir/meson-crosscompile.txt
     echo "arch = '$arch'" >> $tc_dir/meson-crosscompile.txt
-    chmod -f a-w $tc_dir/meson-crosscompile.txt
+    sudo chmod -f a-w $tc_dir/meson-crosscompile.txt
 
     echo "[*] Building Latest KindleTool"
     cd KindleTool/
@@ -104,15 +104,16 @@ Setup_SDK() {
           # Extract ext filesystem without mounting
           sudo debugfs -R "rdump / mnt/" rootfs.img 2>/dev/null || true
           sudo chown -R $USER: mnt/
+          sudo chmod -R u+r mnt/
       cd ../../..
     done
 
     echo "[*] Wiping target pkgconfig files"
     if [ -d "$sysroot_dir/usr/lib/pkgconfig" ]; then
-        chmod -f a+w $sysroot_dir/usr/lib/
-        chmod -f -R a+w $sysroot_dir/usr/lib/pkgconfig
-        RM_If_Exists $sysroot_dir/usr/lib/pkgconfig
-        chmod -f a-w $sysroot_dir/usr/lib/
+        sudo chmod -f a+w $sysroot_dir/usr/lib/
+        sudo chmod -f -R a+w $sysroot_dir/usr/lib/pkgconfig
+        sudo rm -rf $sysroot_dir/usr/lib/pkgconfig
+        sudo chmod -f a-w $sysroot_dir/usr/lib/
     fi
 
     echo "[*] Parsing pkgconfig files for any"
@@ -153,34 +154,34 @@ Setup_SDK() {
     echo "[*] Copying patch files for any to sysroot"
     # Copy universal stuff
     cd "./patch/any"
-        find . -type d -exec chmod -f -R a+w $sysroot_dir/{} ';'
+        find . -type d -exec sudo chmod -f -R a+w $sysroot_dir/{} ';'
     cd ../..
 
-    chmod -f a+w $sysroot_dir/
-    cp -r ./patch/any/* $sysroot_dir/
-    chmod -f a-w $sysroot_dir/
+    sudo chmod -f a+w $sysroot_dir/
+    sudo cp -r ./patch/any/* $sysroot_dir/
+    sudo chmod -f a-w $sysroot_dir/
     cd "./patch/any"
-        find . -type d -exec chmod -f -R a-w $sysroot_dir/{} ';'
+        find . -type d -exec sudo chmod -f -R a-w $sysroot_dir/{} ';'
     cd ../..
 
     if [ -d "./patch/$sdk_target" ]; then
         echo "[*] Copying patch files for $sdk_target to sysroot"
         cd "./patch/$sdk_target"
-            find . -type d -exec chmod -f -R a+w $sysroot_dir/{} ';'
+            find . -type d -exec sudo chmod -f -R a+w $sysroot_dir/{} ';'
         cd ../..
 
-        chmod -f a+w $sysroot_dir/
-        cp -r ./patch/$sdk_target/* $sysroot_dir/
-        chmod -f a-w $sysroot_dir/
+        sudo chmod -f a+w $sysroot_dir/
+        sudo cp -r ./patch/$sdk_target/* $sysroot_dir/
+        sudo chmod -f a-w $sysroot_dir/
         cd "./patch/$sdk_target"
-            find . -type d -exec chmod -f -R a-w $sysroot_dir/{} ';'
+            find . -type d -exec sudo chmod -f -R a-w $sysroot_dir/{} ';'
         cd ../..
     fi
 
 
     echo "[*] Copying firmware library files to sysroot"
-    chmod -f -R a+w $sysroot_dir/lib
-    chmod -f -R a+w $sysroot_dir/usr/lib
+    sudo chmod -f -R a+w $sysroot_dir/lib
+    sudo chmod -f -R a+w $sysroot_dir/usr/lib
 
     # We overlay by copying and skipping files that already exist (-n isn't portable GOOGOO GAGA IT'S MORE PORTABLE THAN BLOODY OVERLAY MOUNTS (sorry im supposed to be writing DRM today not dealing with Kindle stuff))
     # OVERLAY MOUNTS CAN BITE ME!
@@ -195,15 +196,17 @@ Setup_SDK() {
     sudo chown -R $USER: ${sysroot_dir}/lib/*
     echo "[*] Patching symlinks"
     set +e # Temporarially disable error checking because some of these will fail bc they're referencing nonexistent targets
-    find $sysroot_dir/usr/lib -type l -ls | grep "\-> /" | grep -v "\-> $sysroot_dir" | awk -v sysroot_dir="$sysroot_dir" '{print "rm " $11 "; ln -sf " sysroot_dir $13 " " $11}' | sh
-    find $sysroot_dir/lib -type l -ls | grep "\-> /" | grep -v "\-> $sysroot_dir" | awk -v sysroot_dir="$sysroot_dir" '{print "rm " $11 "; ln -sf " sysroot_dir $13 " " $11}' | sh
+    find $sysroot_dir/usr/lib -type l -ls | grep "\-> /" | grep -v "\-> $sysroot_dir" | awk -v sysroot_dir="$sysroot_dir" '{print "rm " $11 "; ln -sf " sysroot_dir $13 " " $11}' | sudo sh
+    find $sysroot_dir/lib -type l -ls | grep "\-> /" | grep -v "\-> $sysroot_dir" | awk -v sysroot_dir="$sysroot_dir" '{print "rm " $11 "; ln -sf " sysroot_dir $13 " " $11}' | sudo sh
     set -e
-    chmod -f -R a-w $sysroot_dir/usr/lib
-    chmod -f -R a-w $sysroot_dir/lib
+    sudo chmod -f -R a-w $sysroot_dir/usr/lib
+    sudo chmod -f -R a-w $sysroot_dir/lib
 
 
-    chmod -f a-w $tc_dir/
+    sudo chmod -f a-w $tc_dir/
 
+
+    echo "[*] Cleaning up"
 
     echo "===================================================================================================="
     echo "[*] Kindle (unofficial) SDK Installed"
